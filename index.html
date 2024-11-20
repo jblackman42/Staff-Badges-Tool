@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<style>
+  :root {
+    --accent: #7B2D26;
+    --image-size: 3.25in;
+    --outer-border-radius: 8px;
+    --outer-border-width: 6px;
+    --label-font-size: 1rem;
+  }
+
+  #card-container-container {
+    margin: 0 auto;
+    width: max-content;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    place-items: center;
+    gap: 1rem;
+  }
+
+  .card-container {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    position: relative;
+
+    .img-container {
+      border: var(--outer-border-width) solid var(--accent);
+      border-radius: var(--outer-border-radius);
+
+      img {
+        width: var(--image-size);
+        height: var(--image-size);
+        object-fit: cover;
+        border: calc(var(--outer-border-width) - 2px) solid white;
+        border-radius: calc(var(--outer-border-radius) - var(--outer-border-width));
+        display: block;
+        box-sizing: border-box;
+      }
+    }
+
+    .card-label {
+      position: absolute;
+      background-color: white;
+      border-radius: calc(var(--outer-border-radius) / 2);
+      bottom: 0;
+      left: 0;
+      padding: 4px;
+      margin: 14px;
+
+      p {
+        margin: 0;
+      }
+
+      .name {
+        text-transform: uppercase;
+        font-size: calc(var(--label-font-size) * 1.25);
+      }
+
+      .title {
+        font-weight: 600;
+        font-size: var(--label-font-size);
+      }
+    }
+  }
+</style>
+
+<body>
+  <div id="card-container-container">
+  </div>
+
+  <script>
+
+    const getCookie = (name) => {
+      const cookieString = document.cookie;
+      const cookies = cookieString.split(';');
+
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.startsWith(name + '=')) {
+          return decodeURIComponent(cookie.substring(name.length + 1));
+        }
+      }
+
+      return null;
+    }
+
+
+    const savePassedVariables = (urlParams) => {
+      // vars passed from 'pass authentication'
+      // dg = Domain_GUID
+      // ug = User_GUID
+      // pageID = Page_ID
+      // s = Selection_ID
+      // sc = Selection_Count
+      // p = ?
+      // q = ?
+      // v = ?
+      // recordID = -1
+      // recordDescription= 
+      // addl= ?
+      urlParams.forEach((val, name) => {
+        if (val !== '') sessionStorage.setItem(name, val);
+      });
+      history.pushState({}, '', '/');
+    };
+
+    const getStaff = async () => {
+      try {
+        const accessToken = getCookie('access_token');
+        const selectionID = sessionStorage.getItem('s');
+        const recordID = sessionStorage.getItem('recordID');
+
+        if (!accessToken) throw new Error('No access token found');
+        if (!selectionID) throw new Error('No selection found');
+        if (!recordID) throw new Error('No record found');
+
+        const staffResponse = await fetch(`https://my.pureheart.org/ministryplatformapi/procs/PHC_GetStaffBadgesTool?@SelectionID=${selectionID}&@RecordID=${recordID}`, {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
+        });
+
+        if (!staffResponse.ok) {
+          throw new Error(`API request failed with status ${staffResponse.status}`);
+        }
+
+        const [staffData] = await staffResponse.json();
+
+        if (staffData.length === 0) throw new Error('No staff data found');
+
+        return staffData;
+      } catch (error) {
+        handleError(error.message);
+        return null;
+      }
+    }
+
+    const handleError = (error) => {
+      alert(error);
+    }
+
+    const handleLogin = async () => {
+      const config = await fetch('/config.json');
+      const configData = await config.json();
+      const loginURL = `https://my.pureheart.org/ministryplatformapi/oauth/connect/authorize?${Object.entries(configData).map(([key, value]) => `${key}=${value}`).join('&')}`;
+      window.location = loginURL;
+    }
+
+    const init = async () => {
+      const staff = await getStaff();
+      const staffContainer = document.getElementById('card-container-container');
+
+      const staffCardsHTML = staff.map(staffMember => {
+        const { Nickname, Last_Name, Job_Title, Profile_Picture_URL } = staffMember;
+        const displayName = `${Nickname} ${Last_Name}`;
+        return `
+          <div class="card-container">
+            <div class="img-container">
+              <img src="${Profile_Picture_URL}" alt="${displayName}" />
+            </div>
+
+            <div class="card-label">
+              <p class="name">${displayName}</p>
+              <p class="title">${Job_Title}</p>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      staffContainer.innerHTML = staffCardsHTML;
+    }
+
+    (async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+
+      const error = urlParams.get('error');
+      if (error) {
+        history.pushState({}, '', '/');
+        handleError(error);
+        return;
+      }
+
+      if (urlParams.size > 0) savePassedVariables(urlParams);
+      const currAccessToken = getCookie('access_token');
+
+      if (!currAccessToken) {
+        handleLogin();
+        return;
+      };
+
+      init();
+    })();
+  </script>
+</body>
+
+</html>

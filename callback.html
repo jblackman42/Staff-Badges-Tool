@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+
+  <script>
+    // parse out values from url
+    // if error show the erron
+    // if token save token and redirect to index.html
+
+    function setCookie(name, value, secondsToExpire) {
+      const date = new Date();
+      date.setTime(date.getTime() + (secondsToExpire * 1000));
+      const expires = "expires=" + date.toUTCString();
+      document.cookie = `${name}=${value}; ${expires}; path=/; Secure; SameSite=Strict`;
+    }
+
+    (() => {
+      const callbackData = new URLSearchParams(window.location.hash.substring(1));
+      const access_token = callbackData.get('access_token');
+      const token_type = callbackData.get('token_type');
+      const expires_in = callbackData.get('expires_in');
+
+      if (!access_token || !token_type || !expires_in) {
+        window.location = '/?error=you did something wrong';
+        return;
+      }
+
+      setCookie('access_token', access_token, expires_in);
+      setCookie('token_type', token_type, expires_in);
+
+      window.location = '/';
+    })();
+  </script>
+</body>
+
+</html>
