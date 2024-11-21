@@ -22,7 +22,7 @@
     }
 
     (async () => {
-      const config = await fetch('/config.json');
+      const config = await fetch(`/${tool_name}/config.json`);
       const configData = await config.json();
       const { tool_name } = configData;
 

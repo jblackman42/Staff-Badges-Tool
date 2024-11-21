@@ -112,7 +112,7 @@
 
     const getStaff = async () => {
       try {
-        const config = await fetch('/config.json');
+        const config = await fetch(`/${tool_name}/config.json`);
         const configData = await config.json();
         const { base_url } = configData;
 
@@ -150,7 +150,7 @@
     }
 
     const handleLogin = async () => {
-      const config = await fetch('/config.json');
+      const config = await fetch(`/${tool_name}/config.json`);
       const configData = await config.json();
       const { client_id, redirect_uri, response_type, scope, base_url } = configData;
       const loginURL = `https://${base_url}/ministryplatformapi/oauth/connect/authorize?${Object.entries({ client_id, redirect_uri, response_type, scope }).map(([key, value]) => `${key}=${value}`).join('&')}`;
