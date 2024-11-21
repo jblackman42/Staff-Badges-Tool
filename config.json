@@ -3,6 +3,5 @@
   "redirect_uri": "http://127.0.0.1:5500/callback.html",
   "response_type": "token",
   "scope": "http://www.thinkministry.com/dataplatform/scopes/all",
-  "base_url": "my.pureheart.org",
-  "tool_name": "Staff-Badges-Tool"
+  "base_url": "my.pureheart.org"
 }
