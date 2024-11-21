@@ -112,6 +112,10 @@
 
     const getStaff = async () => {
       try {
+        const config = await fetch('/config.json');
+        const configData = await config.json();
+        const { base_url } = configData;
+
         const accessToken = getCookie('access_token');
         const selectionID = sessionStorage.getItem('s');
         const recordID = sessionStorage.getItem('recordID');
@@ -120,7 +124,7 @@
         if (!selectionID) throw new Error('No selection found');
         if (!recordID) throw new Error('No record found');
 
-        const staffResponse = await fetch(`https://my.pureheart.org/ministryplatformapi/procs/PHC_GetStaffBadgesTool?@SelectionID=${selectionID}&@RecordID=${recordID}`, {
+        const staffResponse = await fetch(`https://${base_url}/ministryplatformapi/procs/PHC_GetStaffBadgesTool?@SelectionID=${selectionID}&@RecordID=${recordID}`, {
           headers: {
             'Authorization': `Bearer ${accessToken}`
           }
@@ -148,7 +152,8 @@
     const handleLogin = async () => {
       const config = await fetch('/config.json');
       const configData = await config.json();
-      const loginURL = `https://my.pureheart.org/ministryplatformapi/oauth/connect/authorize?${Object.entries(configData).map(([key, value]) => `${key}=${value}`).join('&')}`;
+      const { client_id, redirect_uri, response_type, scope, base_url } = configData;
+      const loginURL = `https://${base_url}/ministryplatformapi/oauth/connect/authorize?${Object.entries({ client_id, redirect_uri, response_type, scope }).map(([key, value]) => `${key}=${value}`).join('&')}`;
       window.location = loginURL;
     }
 

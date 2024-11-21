@@ -21,21 +21,25 @@
       document.cookie = `${name}=${value}; ${expires}; path=/; Secure; SameSite=Strict`;
     }
 
-    (() => {
+    (async () => {
+      const config = await fetch('/config.json');
+      const configData = await config.json();
+      const { tool_name } = configData;
+
       const callbackData = new URLSearchParams(window.location.hash.substring(1));
       const access_token = callbackData.get('access_token');
       const token_type = callbackData.get('token_type');
       const expires_in = callbackData.get('expires_in');
 
       if (!access_token || !token_type || !expires_in) {
-        window.location = '/?error=you did something wrong';
+        window.location = `${tool_name}/?error=you did something wrong`;
         return;
       }
 
       setCookie('access_token', access_token, expires_in);
       setCookie('token_type', token_type, expires_in);
 
-      window.location = '/';
+      window.location = `/${tool_name}`;
     })();
   </script>
 </body>
