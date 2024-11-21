@@ -1,6 +1,6 @@
 {
   "client_id": "dev_testing",
-  "redirect_uri": "http://127.0.0.1:5500/callback.html",
+  "redirect_uri": "https://jblackman42.github.io/Staff-Badges-Tool/callback.html",
   "response_type": "token",
   "scope": "http://www.thinkministry.com/dataplatform/scopes/all",
   "base_url": "my.pureheart.org"
